@@ -1,7 +1,8 @@
-import { createConnection } from "./index.js";
+import bcrypt from "bcrypt";
+import { client } from "./index.js";
+import {ObjectId} from "mongodb";
 
 async function updateMovieByName(name, request) {
-  const client = await createConnection();
   const result = await client
     .db("b27rwd")
     .collection("movies")
@@ -10,15 +11,20 @@ async function updateMovieByName(name, request) {
 }
 
 async function getMovieByName(name) {
-  const client = await createConnection();
   return await client
     .db("b27rwd")
     .collection("movies")
     .findOne({ name: name });
 }
 
+async function getUserByName(name) {
+  return await client
+    .db("b27rwd")
+    .collection("users")
+    .findOne({ name: name });
+}
+
 async function getMovies(filter) {
-  const client = await createConnection();
   const movies = await client
     .db("b27rwd")
     .collection("movies")
@@ -28,28 +34,42 @@ async function getMovies(filter) {
 }
 
   async function getMovieById(id) {
-  const client = await createConnection();
   const movie = await client
     .db("b27rwd")
     .collection("movies")
-    .findOne({ id: id});
+    .findOne({ _id: ObjectId(id) });
   return movie;
 }
 async function createMovie(data) {
-    const client = await createConnection();
     const  result = await client
       .db("b27rwd")
       .collection("movies")
       .insertMany(data);
     return result;
 }
+
+async function createUser(data) {
+  const  result = await client
+    .db("b27rwd")
+    .collection("users")
+    .insertOne(data);
+  return result;
+}
+
   async function deleteMovieById(id) {
-    const client = await createConnection();
     const movie = await client
       .db("b27rwd")
       .collection("movies")
-      .deleteMany({ id: id });
+      .deleteOne({ _id: ObjectId(id) });
     return movie;
+  }
+
+  async function genPassword(password) {
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    console.log(hashedPassword);
+    return hashedPassword;
   }
 
   export {
@@ -59,5 +79,7 @@ async function createMovie(data) {
     getMovieById,
     createMovie,
     deleteMovieById,
-   
+    genPassword,
+    getUserByName,
+    createUser,
   };
